@@ -1236,104 +1236,210 @@ def proceso_robot_consulta():
         print("Error en creacion de geom para coordenadas",hora)
 
 
-    consulta_direccion = """ INSERT INTO respuesta (
-                            id_pre,
-                            anio,
-                            mes,
-                            estadovb,
-                            tipo,
-                            nit,
-                            ds,
-                            cliente,
-                            proyecto,
-                            departamento,
-                            ciudad,
-                            direccion,
-                            complemento,
-                            nombre_edifi,
-                            zona,
-                            latitud,
-                            longitud,
-                            tipo_servicio,
-                            pb,
-                            ancho_banda,
-                            op1_coinversor,
-                            op1_central,
-                            op1olt,
-                            op1feeder,
-                            id_cto1,
-                            op1cto,
-                            op1distanciacto,
-                            op1dipscto,
-                            op2_coinversor,
-                            op2_central,
-                            op2feeder,
-                            id_cto2,
-                            op2cto,
-                            op2distanciacto,
-                            oc2dipscto,
-                            fecha_solicitud,
-                            lat_cto,
-                            long_cto,
-                            grupo_cto
-                        )
-                        SELECT DISTINCT ON (c.direccion)
-                            c.id_pre,
-                            EXTRACT(YEAR FROM CURRENT_DATE),
-                            EXTRACT(MONTH FROM CURRENT_DATE),
-                            NULL AS estadovb,
-                            NULL AS tipo,
-                            NULL AS nit,
-                            c.ds,
-                            c.nombre_cli AS cliente,
-                            c.proyecto,
-                            NULL AS departamento,
-                            c.ciudad,
-                            c.direccion,
-                            c.complemento,
-                            c.nombre_edifi,
-                            NULL AS zona,
-                            c.latitud,
-                            c.longitud,
-                            c.producto AS tipo_servicio,
-                            c.tipo_enlace AS pb,
-                            c.ancho_banda,
-                            b.proveedor AS op1_coinversor,
-                            NULL AS op1_central,
-                            b.olt_no AS op1olt,
-                            CONCAT('CA', b.cable) AS op1feeder,
-                            b.idplaca AS id_cto1,
-                            b.cto AS op1cto,
-                            '0' AS op1distanciacto,
-                            b.puertos_libres_cto AS op1dipscto,
-                            '' AS op2_coinversor,
-                            '' AS op2_central,
-                            '' AS op2feeder,
-                            '' AS id_cto2,
-                            '' AS op2cto,
-                            '' AS op2distanciacto,
-                            '' AS oc2dipscto,
-                            CURRENT_DATE AS fecha_solicitud,
-                            0 as lat_cto,
-                            0 as long_cto,
-                            '' as grupo_cto
-                        FROM osp_3gys AS b
-                        JOIN proyecto AS c
-                            ON b.localidad = c.ciudad
-                        WHERE REPLACE(b.direccion_cli,' ','') = REPLACE(c.direccion,' ','')
-                        ORDER BY c.direccion;"""
+    consulta_direccion_con_complemento = """ INSERT INTO respuesta (
+                                                    id_pre,
+                                                    anio,
+                                                    mes,
+                                                    estadovb,
+                                                    tipo,
+                                                    nit,
+                                                    ds,
+                                                    cliente,
+                                                    proyecto,
+                                                    departamento,
+                                                    ciudad,
+                                                    direccion,
+                                                    complemento,
+                                                    nombre_edifi,
+                                                    zona,
+                                                    latitud,
+                                                    longitud,
+                                                    tipo_servicio,
+                                                    pb,
+                                                    ancho_banda,
+                                                    op1_coinversor,
+                                                    op1_central,
+                                                    op1olt,
+                                                    op1feeder,
+                                                    id_cto1,
+                                                    op1cto,
+                                                    op1distanciacto,
+                                                    op1dipscto,
+                                                    op2_coinversor,
+                                                    op2_central,
+                                                    op2feeder,
+                                                    id_cto2,
+                                                    op2cto,
+                                                    op2distanciacto,
+                                                    oc2dipscto,
+                                                    fecha_solicitud,
+                                                    lat_cto,
+                                                    long_cto,
+                                                    grupo_cto
+                                                )
+                                                SELECT DISTINCT ON (c.direccion)
+                                                    c.id_pre,
+                                                    EXTRACT(YEAR FROM CURRENT_DATE),
+                                                    EXTRACT(MONTH FROM CURRENT_DATE),
+                                                    NULL AS estadovb,
+                                                    NULL AS tipo,
+                                                    NULL AS nit,
+                                                    c.ds,
+                                                    c.nombre_cli AS cliente,
+                                                    c.proyecto,
+                                                    NULL AS departamento,
+                                                    c.ciudad,
+                                                    c.direccion,
+                                                    c.complemento,
+                                                    c.nombre_edifi,
+                                                    NULL AS zona,
+                                                    c.latitud,
+                                                    c.longitud,
+                                                    c.producto AS tipo_servicio,
+                                                    c.tipo_enlace AS pb,
+                                                    c.ancho_banda,
+                                                    b.proveedor AS op1_coinversor,
+                                                    NULL AS op1_central,
+                                                    b.olt_no AS op1olt,
+                                                    CONCAT('CA', b.cable) AS op1feeder,
+                                                    b.idplaca AS id_cto1,
+                                                    b.cto AS op1cto,
+                                                    '0' AS op1distanciacto,
+                                                    b.puertos_libres_cto AS op1dipscto,
+                                                    '' AS op2_coinversor,
+                                                    '' AS op2_central,
+                                                    '' AS op2feeder,
+                                                    '' AS id_cto2,
+                                                    '' AS op2cto,
+                                                    '' AS op2distanciacto,
+                                                    '' AS oc2dipscto,
+                                                    CURRENT_DATE AS fecha_solicitud,
+                                                    0 as lat_cto,
+                                                    0 as long_cto,
+                                                    '' as grupo_cto
+                                                FROM osp_3gys AS b
+                                                JOIN proyecto AS c
+                                                    ON b.localidad = c.ciudad
+                                                WHERE REPLACE(b.direccion_cli,' ','') = REPLACE(concat(c.direccion,c.complemento),' ','')
+                                                ORDER BY c.direccion;"""
     
     try:
-        cur_pg.execute(consulta_direccion)
+        cur_pg.execute(consulta_direccion_con_complemento)
         con_pg.commit()
-        print("Consulta por direccion ejecutada")
+        print("Consulta por direccion con complemento ejecutada")
     except Exception as e:
-        print("Error en consulta por direccion",e)
+        print("Error en consulta por direccion con complemento",e)
 
     marca_consulta_por_direccion = """ UPDATE proyecto AS B
                                         SET respuesta = 'DIRECCION EXACTA'
                                     FROM respuesta AS A
                                         WHERE A.id_pre = B.id_pre; """
+    try:
+        cur_pg.execute(marca_consulta_por_direccion)
+        con_pg.commit()
+        print("Punto por direccion marcado")
+    except Exception as e:
+        print("Error en consulta por direccion exacta.",e)
+    consulta_direccion_SIN_complemento = """ INSERT INTO respuesta (
+                                                    id_pre,
+                                                    anio,
+                                                    mes,
+                                                    estadovb,
+                                                    tipo,
+                                                    nit,
+                                                    ds,
+                                                    cliente,
+                                                    proyecto,
+                                                    departamento,
+                                                    ciudad,
+                                                    direccion,
+                                                    complemento,
+                                                    nombre_edifi,
+                                                    zona,
+                                                    latitud,
+                                                    longitud,
+                                                    tipo_servicio,
+                                                    pb,
+                                                    ancho_banda,
+                                                    op1_coinversor,
+                                                    op1_central,
+                                                    op1olt,
+                                                    op1feeder,
+                                                    id_cto1,
+                                                    op1cto,
+                                                    op1distanciacto,
+                                                    op1dipscto,
+                                                    op2_coinversor,
+                                                    op2_central,
+                                                    op2feeder,
+                                                    id_cto2,
+                                                    op2cto,
+                                                    op2distanciacto,
+                                                    oc2dipscto,
+                                                    fecha_solicitud,
+                                                    lat_cto,
+                                                    long_cto,
+                                                    grupo_cto
+                                                )
+                                                SELECT DISTINCT ON (c.direccion)
+                                                    c.id_pre,
+                                                    EXTRACT(YEAR FROM CURRENT_DATE),
+                                                    EXTRACT(MONTH FROM CURRENT_DATE),
+                                                    NULL AS estadovb,
+                                                    NULL AS tipo,
+                                                    NULL AS nit,
+                                                    c.ds,
+                                                    c.nombre_cli AS cliente,
+                                                    c.proyecto,
+                                                    NULL AS departamento,
+                                                    c.ciudad,
+                                                    c.direccion,
+                                                    c.complemento,
+                                                    c.nombre_edifi,
+                                                    NULL AS zona,
+                                                    c.latitud,
+                                                    c.longitud,
+                                                    c.producto AS tipo_servicio,
+                                                    c.tipo_enlace AS pb,
+                                                    c.ancho_banda,
+                                                    b.proveedor AS op1_coinversor,
+                                                    NULL AS op1_central,
+                                                    b.olt_no AS op1olt,
+                                                    CONCAT('CA', b.cable) AS op1feeder,
+                                                    b.idplaca AS id_cto1,
+                                                    b.cto AS op1cto,
+                                                    '0' AS op1distanciacto,
+                                                    b.puertos_libres_cto AS op1dipscto,
+                                                    '' AS op2_coinversor,
+                                                    '' AS op2_central,
+                                                    '' AS op2feeder,
+                                                    '' AS id_cto2,
+                                                    '' AS op2cto,
+                                                    '' AS op2distanciacto,
+                                                    '' AS oc2dipscto,
+                                                    CURRENT_DATE AS fecha_solicitud,
+                                                    0 as lat_cto,
+                                                    0 as long_cto,
+                                                    '' as grupo_cto
+                                                FROM osp_3gys AS b
+                                                JOIN proyecto AS c
+                                                    ON b.localidad = c.ciudad
+                                                WHERE REPLACE(b.direccion_sin_complemento,' ','') = REPLACE(c.direccion,' ','')
+                                                AND and C.respuesta is null
+                                                ORDER BY c.direccion;"""
+    
+    try:
+        cur_pg.execute(consulta_direccion_SIN_complemento)
+        con_pg.commit()
+        print("Consulta por direccion SIN complemento ejecutada")
+    except Exception as e:
+        print("Error en consulta por direccion SIN complemento",e)
+
+    marca_consulta_por_direccion = """ UPDATE proyecto AS B
+                                        SET respuesta = 'DIRECCION EXACTA'
+                                    FROM respuesta AS A
+                                        WHERE A.id_pre = B.id_pre 
+                                        AND B.respuesta is null ; """
     try:
         cur_pg.execute(marca_consulta_por_direccion)
         con_pg.commit()
